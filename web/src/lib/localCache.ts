@@ -6,7 +6,7 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type { ActivityRow, DailyStatsRow, MonthlyStatsRow, PersonalRecordRow } from '../types/database'
 
-class PersonalStravaCacheDB extends Dexie {
+class TelemetryCacheDB extends Dexie {
   activities!: EntityTable<ActivityRow, 'id'>
   dailyStats!: EntityTable<DailyStatsRow, 'id'>
   monthlyStats!: EntityTable<MonthlyStatsRow, 'id'>
@@ -23,7 +23,7 @@ class PersonalStravaCacheDB extends Dexie {
   }
 }
 
-export const cacheDb = new PersonalStravaCacheDB()
+export const cacheDb = new TelemetryCacheDB()
 
 export async function clearLocalCache() {
   await Promise.all([

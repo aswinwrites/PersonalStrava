@@ -5,8 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0b0b0c" />
-    <meta name="description" content="PersonalStrava — a private, single-user activity tracker for walking, cycling and motorcycling." />
-    <title>PersonalStrava</title>
+    <meta name="description" content="Telemetry — a private, single-user activity tracker for walking, cycling and motorcycling." />
+    <title>Telemetry</title>
+    <script>
+      // Applied before paint to avoid a flash of the wrong theme. Reads the
+      // same key ThemeToggle.tsx writes to localStorage; falls back to the
+      // OS preference (handled entirely by CSS media queries) when unset.
+      try {
+        var stored = localStorage.getItem('telemetry-theme');
+        if (stored === 'dark' || stored === 'light') {
+          document.documentElement.classList.add(stored);
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

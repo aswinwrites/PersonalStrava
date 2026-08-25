@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">PersonalStrava</string>
+    <string name="app_name">Telemetry</string>
 
     <string name="permission_rationale_location">
-        PersonalStrava uses precise location to record the route, distance and speed of your rides.
+        Telemetry uses precise location to record the route, distance and speed of your rides.
     </string>
     <string name="permission_rationale_background_location">
-        PersonalStrava needs background location so recording keeps working while your phone is locked
+        Telemetry needs background location so recording keeps working while your phone is locked
         or you\'re using another app.
     </string>
     <string name="permission_rationale_health_connect">
-        PersonalStrava uses your step data to calculate your walking activity and daily movement statistics.
+        Telemetry uses your step data to calculate your walking activity and daily movement statistics.
     </string>
     <string name="permission_rationale_notifications">
-        PersonalStrava shows a notification while recording so you can see live distance and speed, and
+        Telemetry shows a notification while recording so you can see live distance and speed, and
         so Android keeps the recording alive in the background.
     </string>
 </resources>

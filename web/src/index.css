@@ -2,7 +2,7 @@
 @import "maplibre-gl/dist/maplibre-gl.css";
 
 @theme {
-  /* PersonalStrava design tokens — own visual identity, not a generic SaaS
+  /* Telemetry design tokens — own visual identity, not a generic SaaS
      dashboard palette. Light-first tokens with a dark override below. */
   --font-display: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;

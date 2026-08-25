@@ -12,8 +12,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'PersonalStrava',
-        short_name: 'PersonalStrava',
+        name: 'Telemetry',
+        short_name: 'Telemetry',
         description: 'Private, personal activity tracker — walking, cycling, motorcycling.',
         theme_color: '#0b0b0c',
         background_color: '#0b0b0c',
