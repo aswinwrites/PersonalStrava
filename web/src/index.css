@@ -1,0 +1,66 @@
+@import "tailwindcss";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+@theme {
+  /* PersonalStrava design tokens — own visual identity, not a generic SaaS
+     dashboard palette. Light-first tokens with a dark override below. */
+  --font-display: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+
+  --color-ink: #0b0b0c;
+  --color-paper: #fafaf9;
+  --color-surface: #ffffff;
+  --color-border: #e6e4e0;
+  --color-muted: #79766f;
+
+  --color-walking: #2f9e6f;
+  --color-cycling: #ff6a3d;
+  --color-motorcycling: #3d6bff;
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-ink: #f2f1ee;
+    --color-paper: #0b0b0c;
+    --color-surface: #141416;
+    --color-border: #232326;
+    --color-muted: #9b9892;
+  }
+}
+
+html.dark {
+  --color-ink: #f2f1ee;
+  --color-paper: #0b0b0c;
+  --color-surface: #141416;
+  --color-border: #232326;
+  --color-muted: #9b9892;
+}
+
+html.light {
+  --color-ink: #0b0b0c;
+  --color-paper: #fafaf9;
+  --color-surface: #ffffff;
+  --color-border: #e6e4e0;
+  --color-muted: #79766f;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+.font-mono-stat {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

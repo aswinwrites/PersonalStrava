@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- allowBackup is false in the manifest (activity/GPS data is sensitive and
+     large); this file is unused but kept as a placeholder in case that ever
+     changes for a specific low-risk subset of prefs. -->
+<full-backup-content>
+</full-backup-content>

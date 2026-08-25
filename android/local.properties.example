@@ -1,0 +1,9 @@
+# Copy to android/local.properties (gitignored) and fill in.
+# Android Studio normally writes sdk.dir for you automatically the first
+# time you open the project.
+sdk.dir=/path/to/Android/sdk
+
+# Consumed by app/build.gradle.kts via BuildConfig fields — see
+# docs/android.md for how these map to Supabase env vars.
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key

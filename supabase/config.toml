@@ -1,0 +1,40 @@
+# Supabase CLI local dev config. Run `supabase init` once if you want to
+# regenerate this fully; this checked-in version pins the project name and
+# migration/functions directories so `supabase db push` and
+# `supabase functions deploy` work against the linked cloud project.
+
+project_id = "personalstrava"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["https://localhost:5173"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.external.google]
+enabled = true
+client_id = "env(GOOGLE_OAUTH_CLIENT_ID)"
+secret = "env(GOOGLE_OAUTH_CLIENT_SECRET)"
+
+[functions]
+[functions.send-report]
+verify_jwt = true
+
+[functions.generate-share-card]
+verify_jwt = true
