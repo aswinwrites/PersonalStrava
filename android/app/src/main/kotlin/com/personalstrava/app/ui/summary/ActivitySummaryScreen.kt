@@ -49,6 +49,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.personalstrava.app.data.local.entity.PhotoEntity
+import com.personalstrava.app.data.local.entity.ActivityEntity
+import com.personalstrava.app.domain.model.ActivityType
 import com.personalstrava.app.share.ShareCard
 import com.personalstrava.app.share.ShareCardRenderer
 import kotlinx.coroutines.launch
@@ -88,6 +90,7 @@ fun ActivitySummaryScreen(
         }
 
         if (activity != null) {
+            item { StatsGrid(activity) }
             item {
                 OutlinedTextField(
                     value = state.titleDraft,
@@ -194,4 +197,75 @@ private fun AddPhotoButton(onClick: () -> Unit) {
     ) {
         Icon(Icons.Filled.Add, contentDescription = "Add photos")
     }
+}
+
+/**
+ * The full breakdown that the compact share card deliberately leaves out (spec follow-up ask:
+ * "avg speed and no-movement time and stops recorded?") — elapsed time, moving time, the stopped
+ * time between them, and both average-speed variants side by side so it's clear which one
+ * includes stops and which doesn't. All of this is already on ActivityEntity; this is purely a
+ * display gap being closed, not new tracking.
+ */
+@Composable
+private fun StatsGrid(activity: ActivityEntity) {
+    val type = ActivityType.fromDbValue(activity.activityType)
+    val isPaceType = type == ActivityType.WALKING || type == ActivityType.JOGGING
+    val stoppedSeconds = (activity.elapsedSeconds - activity.movingSeconds).coerceAtLeast(0)
+
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            StatCell("Distance", "%.2f km".format(activity.distanceMeters / 1000), Modifier.weight(1f))
+            StatCell("Elapsed", formatDuration(activity.elapsedSeconds), Modifier.weight(1f))
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            StatCell("Moving", formatDuration(activity.movingSeconds), Modifier.weight(1f))
+            StatCell("Stopped", formatDuration(stoppedSeconds), Modifier.weight(1f))
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            StatCell(
+                if (isPaceType) "Avg pace (moving)" else "Avg speed (moving)",
+                activity.movingAverageSpeedMps?.let { formatSpeedOrPace(it, isPaceType) } ?: "—",
+                Modifier.weight(1f),
+            )
+            StatCell(
+                if (isPaceType) "Avg pace (overall)" else "Avg speed (overall)",
+                activity.averageSpeedMps?.let { formatSpeedOrPace(it, isPaceType) } ?: "—",
+                Modifier.weight(1f),
+            )
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            StatCell("Max speed", activity.maxSpeedMps?.let { "%.1f km/h".format(it * 3.6) } ?: "—", Modifier.weight(1f))
+            StatCell("Elevation", "+${activity.elevationGainMeters.toInt()} m", Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun StatCell(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
+        Text(text = value, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Text(text = label.uppercase(), fontSize = 10.sp)
+    }
+}
+
+private fun formatDuration(totalSeconds: Long): String {
+    val h = totalSeconds / 3600
+    val m = (totalSeconds % 3600) / 60
+    val s = totalSeconds % 60
+    return if (h > 0) "%d:%02d:%02d".format(h, m, s) else "%d:%02d".format(m, s)
+}
+
+/** Mirrors ShareCard's own formatSpeedOrPace — kept as a separate private copy rather than a
+ *  shared util since the two screens' formatting needs have already drifted slightly (this one
+ *  takes a plain isPaceType flag instead of an ActivityType, to reuse cleanly against both the
+ *  moving and overall average in the same grid). */
+private fun formatSpeedOrPace(mps: Double, isPaceType: Boolean): String {
+    if (mps <= 0) return "—"
+    if (isPaceType) {
+        val secPerKm = 1000.0 / mps
+        val min = (secPerKm / 60).toInt()
+        val sec = (secPerKm % 60).toInt()
+        return "%d:%02d /km".format(min, sec)
+    }
+    return "%.1f km/h".format(mps * 3.6)
 }

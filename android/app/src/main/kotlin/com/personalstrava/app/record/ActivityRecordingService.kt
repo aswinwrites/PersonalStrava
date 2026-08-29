@@ -19,10 +19,13 @@ import com.personalstrava.app.MainActivity
 import com.personalstrava.app.R
 
 /**
- * Foreground service that owns GPS recording for a cycling/motorcycling
- * activity (spec sections 12-13). Runs while the screen is locked or the
- * user has switched apps; only ever started by an explicit user action
- * ("Start cycling"/"Start motorcycling") — never auto-starts.
+ * Foreground service that owns GPS recording for any of the four activity
+ * types (walking, jogging, cycling, motorcycling — spec sections 12-13).
+ * Runs while the screen is locked or the user has switched apps; only ever
+ * started by an explicit user action ("Start walking"/"Start jogging"/
+ * "Start cycling"/"Start motorcycling") — never auto-starts. Activity type
+ * itself only matters downstream (GpsProcessor thresholds, ShareCard
+ * labels) — this service just samples location the same way regardless.
  *
  * Sampling: BALANCED priority at a 3s interval is the default trade-off
  * between route fidelity and battery drain (spec section 12 — "do not

@@ -77,7 +77,7 @@ fun ShareCard(activity: ActivityEntity, width: androidx.compose.ui.unit.Dp = 360
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             StatBlock(label = "DISTANCE", value = "%.2f km".format(activity.distanceMeters / 1000), accent = accent)
-            StatBlock(label = "TIME", value = formatElapsed(activity.movingSeconds), accent = accent)
+            StatBlock(label = "MOVING TIME", value = formatElapsed(activity.movingSeconds), accent = accent)
         }
 
         Spacer(Modifier.height(20.dp))

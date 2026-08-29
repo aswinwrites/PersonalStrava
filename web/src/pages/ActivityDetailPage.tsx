@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Plus, X } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../features/auth/AuthProvider'
-import { formatDuration, formatElevation, formatKm, formatKmh } from '../lib/units'
+import { formatDuration, formatElevation, formatKm, formatSpeedOrPace } from '../lib/units'
 import { ACTIVITY_ICON, ACTIVITY_LABEL } from '../lib/activityIcon'
 import type { ActivityPhotoRow, ActivityRow } from '../types/database'
 
@@ -127,6 +127,7 @@ export function ActivityDetailPage() {
   if (!activity) return <p className="text-sm text-[var(--color-muted)]">{error ?? 'Activity not found.'}</p>
 
   const Icon = ACTIVITY_ICON[activity.activity_type]
+  const isPaceType = activity.activity_type === 'walking' || activity.activity_type === 'jogging'
 
   return (
     <div className="flex flex-col gap-6">
@@ -152,13 +153,25 @@ export function ActivityDetailPage() {
         </div>
       </div>
 
+      {/* Elapsed vs. moving time, and both average-speed variants, side by side — the compact
+          share card intentionally only shows moving time, but the detail page is the place to
+          see the full breakdown of what got tracked (spec follow-up: "no-movement time and stops
+          recorded?"). Nothing new is being tracked here — elapsed/moving/avg were already columns
+          on the activity row, just not surfaced until now. */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Distance" value={formatKm(activity.distance_meters)} />
-        <Stat label="Time" value={formatDuration(activity.moving_seconds)} />
+        <Stat label="Elapsed" value={formatDuration(activity.elapsed_seconds)} />
+        <Stat label="Moving" value={formatDuration(activity.moving_seconds)} />
+        <Stat label="Stopped" value={formatDuration(Math.max(0, activity.elapsed_seconds - activity.moving_seconds))} />
         <Stat
-          label={activity.activity_type === 'walking' || activity.activity_type === 'jogging' ? 'Avg pace' : 'Avg speed'}
-          value={activity.moving_average_speed_mps ? formatKmh(activity.moving_average_speed_mps) : '—'}
+          label={isPaceType ? 'Avg pace (moving)' : 'Avg speed (moving)'}
+          value={formatSpeedOrPace(activity.moving_average_speed_mps, activity.activity_type)}
         />
+        <Stat
+          label={isPaceType ? 'Avg pace (overall)' : 'Avg speed (overall)'}
+          value={formatSpeedOrPace(activity.average_speed_mps, activity.activity_type)}
+        />
+        <Stat label="Max speed" value={activity.max_speed_mps ? `${(activity.max_speed_mps * 3.6).toFixed(1)} km/h` : '—'} />
         <Stat label="Elevation" value={formatElevation(activity.elevation_gain_meters)} />
       </div>
 

@@ -1,10 +1,13 @@
 package com.personalstrava.app.ui.profile
 
 import android.app.Application
+import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.personalstrava.app.PersonalStravaApp
+import com.personalstrava.app.steps.StepPreferences
+import com.personalstrava.app.steps.StepTrackingService
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
@@ -24,6 +27,7 @@ data class ProfileUiState(
     val avatarUrl: String? = null,
     val uploadingAvatar: Boolean = false,
     val saved: Boolean = false,
+    val alwaysTrackSteps: Boolean = false,
     val error: String? = null,
 )
 
@@ -39,12 +43,22 @@ data class ProfileUiState(
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
     private val app get() = getApplication<Application>() as PersonalStravaApp
     private val supabase get() = app.supabase
+    private val stepPrefs = StepPreferences(app)
 
-    private val _uiState = MutableStateFlow(ProfileUiState())
+    private val _uiState = MutableStateFlow(ProfileUiState(alwaysTrackSteps = stepPrefs.isAlwaysOnEnabled))
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
     init {
         load()
+    }
+
+    /** Called once the caller has confirmed ACTIVITY_RECOGNITION is granted (API 29+) — see
+     *  ProfileScreen's permission launcher, which requests it before ever calling this with true. */
+    fun setAlwaysTrackSteps(enabled: Boolean) {
+        stepPrefs.isAlwaysOnEnabled = enabled
+        _uiState.value = _uiState.value.copy(alwaysTrackSteps = enabled)
+        val intent = Intent(app, StepTrackingService::class.java)
+        if (enabled) app.startForegroundService(intent) else app.stopService(intent)
     }
 
     fun load() {

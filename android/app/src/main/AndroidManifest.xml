@@ -18,6 +18,13 @@
     <uses-permission android:name="android.permission.health.READ_DISTANCE" />
     <uses-permission android:name="android.permission.health.READ_EXERCISE" />
 
+    <!-- Always-on step tracking (StepTrackingService) — reads the device's own
+         TYPE_STEP_COUNTER sensor directly, independent of whether anything is
+         actually writing to Health Connect. Opt-in only, toggled from Profile. -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <!-- Notifications for the foreground-service recording notification -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
@@ -64,6 +71,20 @@
             android:name=".record.ActivityRecordingService"
             android:exported="false"
             android:foregroundServiceType="location" />
+
+        <!-- Always-on step tracking (opt-in, see ProfileScreen) -->
+        <service
+            android:name=".steps.StepTrackingService"
+            android:exported="false"
+            android:foregroundServiceType="health" />
+
+        <receiver
+            android:name=".steps.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <!-- Periodic Health Connect step sync + sync-queue flush; see
              docs/sync.md for the WorkManager scheduling policy. -->

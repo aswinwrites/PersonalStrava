@@ -1,13 +1,21 @@
 package com.personalstrava.app.ui.home
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
@@ -17,16 +25,27 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.personalstrava.app.data.local.entity.ActivityEntity
+import com.personalstrava.app.weather.WeatherCodes
+import com.personalstrava.app.weather.WeatherRepository
 import java.time.LocalTime
+import java.time.format.TextStyle
+import java.util.Locale
 
 /**
  * The primary screen (spec section 10/38). Today's steps up top, then the
@@ -44,6 +63,26 @@ fun HomeScreen(
     viewModel: HomeViewModel = viewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    var hasLocationForWeather by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED,
+        )
+    }
+    val weatherLocationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        hasLocationForWeather = granted
+        if (granted) viewModel.loadWeather()
+    }
+
+    // Weather is genuinely optional context, not something worth its own permission prompt on
+    // first launch — this quietly uses location if it's already granted (from the recording
+    // flow), and otherwise shows a small opt-in prompt rather than interrupting Home.
+    LaunchedEffect(hasLocationForWeather) {
+        if (hasLocationForWeather && state.weather == null) viewModel.loadWeather()
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -71,6 +110,22 @@ fun HomeScreen(
                 fontWeight = FontWeight.Bold,
             )
             Text(text = "STEPS TODAY", fontSize = 12.sp)
+        }
+        item {
+            Text(text = state.quote, fontSize = 13.sp, fontStyle = FontStyle.Italic)
+        }
+        item {
+            if (hasLocationForWeather) {
+                if (state.weather != null) WeatherStrip(state.weather!!)
+            } else {
+                Text(
+                    text = "Enable location to see the forecast before you head out",
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { weatherLocationLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION) },
+                )
+            }
         }
         item {
             Button(
@@ -117,6 +172,35 @@ fun HomeScreen(
                 RecentActivityRow(activity, onClick = { onOpenActivity(activity.id) })
             }
         }
+    }
+}
+
+@Composable
+private fun WeatherStrip(forecast: List<WeatherRepository.DayForecast>) {
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        items(forecast) { day -> WeatherDayCard(day) }
+    }
+}
+
+@Composable
+private fun WeatherDayCard(day: WeatherRepository.DayForecast) {
+    val (emoji, label) = WeatherCodes.describe(day.code)
+    val isToday = day.date == java.time.LocalDate.now()
+    Column(
+        modifier = Modifier.width(72.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = if (isToday) "TODAY" else day.date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()).uppercase(),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Medium,
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(text = emoji, fontSize = 20.sp)
+        Spacer(Modifier.height(4.dp))
+        Text(text = "${day.highC}°", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+        Text(text = "${day.lowC}°", fontSize = 11.sp)
+        Text(text = label, fontSize = 9.sp, maxLines = 1)
     }
 }
 
