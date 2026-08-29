@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Telemetry</string>
+    <string name="app_name">Track Metrics</string>
 
     <string name="permission_rationale_location">
-        Telemetry uses precise location to record the route, distance and speed of your rides.
+        Track Metrics uses precise location to record the route, distance and speed of your rides.
     </string>
     <string name="permission_rationale_background_location">
-        Telemetry needs background location so recording keeps working while your phone is locked
+        Track Metrics needs background location so recording keeps working while your phone is locked
         or you\'re using another app.
     </string>
     <string name="permission_rationale_health_connect">
-        Telemetry uses your step data to calculate your walking activity and daily movement statistics.
+        Track Metrics uses your step data to calculate your walking activity and daily movement statistics.
     </string>
     <string name="permission_rationale_notifications">
-        Telemetry shows a notification while recording so you can see live distance and speed, and
+        Track Metrics shows a notification while recording so you can see live distance and speed, and
         so Android keeps the recording alive in the background.
     </string>
 </resources>

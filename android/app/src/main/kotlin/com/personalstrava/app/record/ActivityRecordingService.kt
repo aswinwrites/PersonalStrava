@@ -114,7 +114,7 @@ class ActivityRecordingService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(if (paused) "Recording paused" else "Recording activity")
             .setContentText(
-                if (paused) "Tap Resume in the app to keep going" else "Distance and speed update live — tap to open Telemetry",
+                if (paused) "Tap Resume in the app to keep going" else "Distance and speed update live — tap to open Track Metrics",
             )
             .setSmallIcon(R.drawable.ic_recording) // placeholder vector asset — see res/drawable
             .setContentIntent(openAppIntent)

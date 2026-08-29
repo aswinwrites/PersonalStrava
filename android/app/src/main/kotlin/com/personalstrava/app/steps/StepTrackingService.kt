@@ -98,7 +98,7 @@ class StepTrackingService : Service(), SensorEventListener {
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Tracking your steps")
-            .setContentText("Always-on step tracking is on — tap to open Telemetry")
+            .setContentText("Always-on step tracking is on — tap to open Track Metrics")
             .setSmallIcon(R.drawable.ic_recording)
             .setContentIntent(openAppIntent)
             .setOngoing(true)

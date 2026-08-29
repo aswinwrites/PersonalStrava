@@ -40,7 +40,7 @@ import com.personalstrava.app.data.local.entity.SyncQueueEntity
         ExportHistoryEntity::class,
         PhotoEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -83,10 +83,27 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        // jogging's per-day distance/time columns were added to DailyStatsEntity
+        // without a matching migration at the time (predates this fix) — devices
+        // that already had a v2 daily_stats table crash on open because Room's
+        // schema-validation check (not just the version number) finds the two
+        // missing columns. This backfills them; existing rows get 0/0.0 same as
+        // any other day with no jogging recorded yet.
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `daily_stats` ADD COLUMN `joggingDistanceMeters` REAL NOT NULL DEFAULT 0.0")
+                db.execSQL("ALTER TABLE `daily_stats` ADD COLUMN `joggingSeconds` INTEGER NOT NULL DEFAULT 0")
+                // monthly_stats has the exact same gap — MonthlyStatsEntity picked up
+                // the same two jogging columns at the same time daily_stats did.
+                db.execSQL("ALTER TABLE `monthly_stats` ADD COLUMN `joggingDistanceMeters` REAL NOT NULL DEFAULT 0.0")
+                db.execSQL("ALTER TABLE `monthly_stats` ADD COLUMN `joggingSeconds` INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase =
             instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "personalstrava.db")
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
                     .also { instance = it }
             }

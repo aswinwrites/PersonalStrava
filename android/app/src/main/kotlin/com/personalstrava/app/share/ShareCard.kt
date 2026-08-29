@@ -99,7 +99,7 @@ fun ShareCard(activity: ActivityEntity, width: androidx.compose.ui.unit.Dp = 360
         Spacer(Modifier.height(28.dp))
 
         Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-            Text(text = "Telemetry", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = "Track Metrics", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }

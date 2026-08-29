@@ -37,7 +37,7 @@ fun SignInScreen(viewModel: AuthViewModel = viewModel()) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(text = "Telemetry", fontSize = 32.sp, fontWeight = FontWeight.Bold)
+        Text(text = "Track Metrics", fontSize = 32.sp, fontWeight = FontWeight.Bold)
         Text(
             text = "Sign in with the same Google account you use on the web dashboard, so your rides sync there.",
             fontSize = 13.sp,
