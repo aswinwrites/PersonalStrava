@@ -18,9 +18,11 @@ object StatsAggregator {
         var walking = 0.0
         var cycling = 0.0
         var motorcycling = 0.0
+        var jogging = 0.0
         var walkingSeconds = 0L
         var cyclingSeconds = 0L
         var motorcyclingSeconds = 0L
+        var joggingSeconds = 0L
         var elevation = 0.0
 
         for (activity in activities) {
@@ -37,6 +39,10 @@ object StatsAggregator {
                     motorcycling += activity.distanceMeters
                     motorcyclingSeconds += activity.movingSeconds
                 }
+                ActivityType.JOGGING -> {
+                    jogging += activity.distanceMeters
+                    joggingSeconds += activity.movingSeconds
+                }
             }
             elevation += activity.elevationGainMeters
         }
@@ -47,9 +53,11 @@ object StatsAggregator {
             walkingDistanceMeters = walking,
             cyclingDistanceMeters = cycling,
             motorcyclingDistanceMeters = motorcycling,
+            joggingDistanceMeters = jogging,
             walkingSeconds = walkingSeconds,
             cyclingSeconds = cyclingSeconds,
             motorcyclingSeconds = motorcyclingSeconds,
+            joggingSeconds = joggingSeconds,
             elevationGainMeters = elevation,
             activityCount = activities.size,
             updatedAt = now,
@@ -63,9 +71,11 @@ object StatsAggregator {
         walkingDistanceMeters = dailyRows.sumOf { it.walkingDistanceMeters },
         cyclingDistanceMeters = dailyRows.sumOf { it.cyclingDistanceMeters },
         motorcyclingDistanceMeters = dailyRows.sumOf { it.motorcyclingDistanceMeters },
+        joggingDistanceMeters = dailyRows.sumOf { it.joggingDistanceMeters },
         walkingSeconds = dailyRows.sumOf { it.walkingSeconds },
         cyclingSeconds = dailyRows.sumOf { it.cyclingSeconds },
         motorcyclingSeconds = dailyRows.sumOf { it.motorcyclingSeconds },
+        joggingSeconds = dailyRows.sumOf { it.joggingSeconds },
         elevationGainMeters = dailyRows.sumOf { it.elevationGainMeters },
         activityCount = dailyRows.sumOf { it.activityCount },
         updatedAt = now,

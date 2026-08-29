@@ -6,6 +6,7 @@ import { AuthCallback } from './features/auth/AuthCallback'
 import { AppShell } from './components/AppShell'
 import { HomePage } from './pages/HomePage'
 import { ActivitiesPage } from './pages/ActivitiesPage'
+import { ActivityDetailPage } from './pages/ActivityDetailPage'
 import { AnalyticsPage } from './pages/AnalyticsPage'
 import { ExportPage } from './pages/ExportPage'
 import { SettingsPage } from './pages/SettingsPage'
@@ -29,6 +30,7 @@ export default function App() {
           >
             <Route path="/" element={<HomePage />} />
             <Route path="/activities" element={<ActivitiesPage />} />
+            <Route path="/activities/:id" element={<ActivityDetailPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route
               path="/map"

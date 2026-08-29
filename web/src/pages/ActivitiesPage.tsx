@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Activity as ActivityIcon } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 import { useSupabaseQuery } from '../lib/useSupabaseQuery'
@@ -10,6 +11,7 @@ import type { ActivityRow, ActivityType } from '../types/database'
 const FILTERS: Array<{ label: string; value: ActivityType | 'all' }> = [
   { label: 'All', value: 'all' },
   { label: 'Walking', value: 'walking' },
+  { label: 'Jogging', value: 'jogging' },
   { label: 'Cycling', value: 'cycling' },
   { label: 'Motorcycling', value: 'motorcycling' },
 ]
@@ -63,23 +65,28 @@ export function ActivitiesPage() {
         {activities?.map((a) => {
           const Icon = ACTIVITY_ICON[a.activity_type]
           return (
-            <li key={a.id} className="flex items-center gap-3 px-4 py-3 transition hover:bg-[var(--color-border)]/20">
-              <span
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
-                style={{ backgroundColor: `color-mix(in srgb, var(--color-${a.activity_type}) 15%, transparent)`, color: `var(--color-${a.activity_type})` }}
+            <li key={a.id}>
+              <Link
+                to={`/activities/${a.id}`}
+                className="flex items-center gap-3 px-4 py-3 transition hover:bg-[var(--color-border)]/20"
               >
-                <Icon size={16} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{a.title || a.activity_type}</p>
-                <p className="text-xs text-[var(--color-muted)]">{new Date(a.start_time).toLocaleDateString()}</p>
-              </div>
-              <div className="shrink-0 text-right text-xs text-[var(--color-muted)]">
-                <p className="font-medium text-[var(--color-ink)]">{formatKm(a.distance_meters)}</p>
-                <p>
-                  {formatDuration(a.moving_seconds)} · {a.average_speed_mps ? formatKmh(a.average_speed_mps) : '—'}
-                </p>
-              </div>
+                <span
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                  style={{ backgroundColor: `color-mix(in srgb, var(--color-${a.activity_type}) 15%, transparent)`, color: `var(--color-${a.activity_type})` }}
+                >
+                  <Icon size={16} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{a.title || a.activity_type}</p>
+                  <p className="text-xs text-[var(--color-muted)]">{new Date(a.start_time).toLocaleDateString()}</p>
+                </div>
+                <div className="shrink-0 text-right text-xs text-[var(--color-muted)]">
+                  <p className="font-medium text-[var(--color-ink)]">{formatKm(a.distance_meters)}</p>
+                  <p>
+                    {formatDuration(a.moving_seconds)} · {a.average_speed_mps ? formatKmh(a.average_speed_mps) : '—'}
+                  </p>
+                </div>
+              </Link>
             </li>
           )
         })}

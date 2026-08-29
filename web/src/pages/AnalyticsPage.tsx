@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { format, subDays, subMonths, subYears } from 'date-fns'
-import { Footprints, Bike, Zap, Mountain, Clock, Activity as ActivityIcon } from 'lucide-react'
+import { Footprints, Activity as JoggingIcon, Bike, Zap, Mountain, Clock, Activity as ActivityIcon } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 import { useSupabaseQuery } from '../lib/useSupabaseQuery'
 import { StatTile } from '../components/StatTile'
@@ -65,11 +65,24 @@ export function AnalyticsPage() {
             icon={Mountain}
             value={
               totals
-                ? formatKm(totals.walking_distance_meters + totals.cycling_distance_meters + totals.motorcycling_distance_meters)
+                ? formatKm(
+                    totals.walking_distance_meters +
+                      totals.jogging_distance_meters +
+                      totals.cycling_distance_meters +
+                      totals.motorcycling_distance_meters,
+                  )
                 : '—'
             }
           />
-          <StatTile label="Active time" icon={Clock} value={totals ? formatDuration(totals.walking_seconds + totals.cycling_seconds + totals.motorcycling_seconds) : '—'} />
+          <StatTile
+            label="Active time"
+            icon={Clock}
+            value={
+              totals
+                ? formatDuration(totals.walking_seconds + totals.jogging_seconds + totals.cycling_seconds + totals.motorcycling_seconds)
+                : '—'
+            }
+          />
           <StatTile label="Steps" icon={Footprints} value={totals ? formatSteps(totals.steps) : '—'} accent="walking" />
           <StatTile label="Activities" icon={ActivityIcon} value={totals ? String(totals.activity_count) : '—'} />
         </div>
@@ -81,6 +94,14 @@ export function AnalyticsPage() {
           <StatTile label="Steps" icon={Footprints} value={totals ? formatSteps(totals.steps) : '—'} accent="walking" />
           <StatTile label="Distance" icon={Footprints} value={totals ? formatKm(totals.walking_distance_meters) : '—'} accent="walking" />
           <StatTile label="Active time" icon={Clock} value={totals ? formatDuration(totals.walking_seconds) : '—'} accent="walking" />
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-sm font-semibold tracking-tight">Jogging</h2>
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatTile label="Distance" icon={JoggingIcon} value={totals ? formatKm(totals.jogging_distance_meters) : '—'} accent="jogging" />
+          <StatTile label="Time" icon={Clock} value={totals ? formatDuration(totals.jogging_seconds) : '—'} accent="jogging" />
         </div>
       </section>
 

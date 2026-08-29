@@ -1,8 +1,10 @@
 package com.personalstrava.app.domain.model
 
-/** Exactly three activity types — spec section 14. One normalized model, no per-type subclasses. */
+/** Four activity types (spec section 14 said three; jogging added later as a
+ *  fourth) — one normalized model, no per-type subclasses. */
 enum class ActivityType {
     WALKING,
+    JOGGING,
     CYCLING,
     MOTORCYCLING;
 

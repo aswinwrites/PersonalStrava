@@ -1,5 +1,6 @@
 interface MovementRingProps {
   walkingSeconds: number
+  joggingSeconds: number
   cyclingSeconds: number
   motorcyclingSeconds: number
   steps: number
@@ -12,14 +13,15 @@ interface MovementRingProps {
  * source of truth, this is the "at a glance" layer the spec's "Strava ×
  * Apple Fitness" brief (section 37) calls for.
  */
-export function MovementRing({ walkingSeconds, cyclingSeconds, motorcyclingSeconds, steps, size = 148 }: MovementRingProps) {
-  const total = walkingSeconds + cyclingSeconds + motorcyclingSeconds
+export function MovementRing({ walkingSeconds, joggingSeconds, cyclingSeconds, motorcyclingSeconds, steps, size = 148 }: MovementRingProps) {
+  const total = walkingSeconds + joggingSeconds + cyclingSeconds + motorcyclingSeconds
   const radius = size / 2 - 10
   const circumference = 2 * Math.PI * radius
   const stroke = 10
 
   const segments = [
     { seconds: walkingSeconds, color: 'var(--color-walking)' },
+    { seconds: joggingSeconds, color: 'var(--color-jogging)' },
     { seconds: cyclingSeconds, color: 'var(--color-cycling)' },
     { seconds: motorcyclingSeconds, color: 'var(--color-motorcycling)' },
   ]

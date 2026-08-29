@@ -35,7 +35,7 @@ export function ExportPage() {
         <h2 className="text-sm font-semibold tracking-tight">CSV export</h2>
         <p className="mt-1 text-xs text-[var(--color-muted)]">
           Activity summaries only — GPS points stay on your Android device. Per spec section 31, per-type CSVs
-          (walking/cycling/motorcycling) plus daily/monthly stats CSVs are generated the same way.
+          (walking/jogging/cycling/motorcycling) plus daily/monthly stats CSVs are generated the same way.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {PERIODS.map((p) => (

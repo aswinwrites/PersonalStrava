@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey
  */
 @Entity(
     tableName = "gps_points",
-    indices = [Index("activity_id"), Index(value = ["activity_id", "timestamp"])],
+    indices = [Index("activityId"), Index(value = ["activityId", "timestamp"])],
 )
 data class GpsPointEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,

@@ -4,12 +4,15 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.room.migration.Migration
 import com.personalstrava.app.data.local.dao.ActivityDao
 import com.personalstrava.app.data.local.dao.DailyStatsDao
 import com.personalstrava.app.data.local.dao.ExportHistoryDao
 import com.personalstrava.app.data.local.dao.GpsPointDao
 import com.personalstrava.app.data.local.dao.MonthlyStatsDao
 import com.personalstrava.app.data.local.dao.PersonalRecordDao
+import com.personalstrava.app.data.local.dao.PhotoDao
 import com.personalstrava.app.data.local.dao.SyncQueueDao
 import com.personalstrava.app.data.local.entity.ActivityEntity
 import com.personalstrava.app.data.local.entity.DailyStatsEntity
@@ -17,6 +20,7 @@ import com.personalstrava.app.data.local.entity.ExportHistoryEntity
 import com.personalstrava.app.data.local.entity.GpsPointEntity
 import com.personalstrava.app.data.local.entity.MonthlyStatsEntity
 import com.personalstrava.app.data.local.entity.PersonalRecordEntity
+import com.personalstrava.app.data.local.entity.PhotoEntity
 import com.personalstrava.app.data.local.entity.SyncQueueEntity
 
 /**
@@ -34,8 +38,9 @@ import com.personalstrava.app.data.local.entity.SyncQueueEntity
         PersonalRecordEntity::class,
         SyncQueueEntity::class,
         ExportHistoryEntity::class,
+        PhotoEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -46,13 +51,42 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun personalRecordDao(): PersonalRecordDao
     abstract fun syncQueueDao(): SyncQueueDao
     abstract fun exportHistoryDao(): ExportHistoryDao
+    abstract fun photoDao(): PhotoDao
 
     companion object {
         @Volatile private var instance: AppDatabase? = null
 
+        // Purely additive (new table, nothing existing changes), so this is
+        // a plain CREATE TABLE rather than a destructive fallback — the
+        // point of a real migration here is that recorded-but-not-yet-synced
+        // rides in `activities`/`sync_queue` survive the app update instead
+        // of being wiped, which fallbackToDestructiveMigration() would do.
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `activity_photos` (
+                        `id` TEXT NOT NULL,
+                        `activityId` TEXT NOT NULL,
+                        `localUri` TEXT NOT NULL,
+                        `caption` TEXT,
+                        `position` INTEGER NOT NULL,
+                        `storagePath` TEXT,
+                        `syncStatus` TEXT NOT NULL,
+                        `createdAt` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_activity_photos_activityId` ON `activity_photos` (`activityId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_activity_photos_syncStatus` ON `activity_photos` (`syncStatus`)")
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase =
             instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "personalstrava.db")
+                    .addMigrations(MIGRATION_1_2)
                     .build()
                     .also { instance = it }
             }

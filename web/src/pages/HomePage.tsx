@@ -1,5 +1,5 @@
 import { format, startOfMonth, startOfWeek } from 'date-fns'
-import { Footprints, Bike, Zap, Mountain, Clock } from 'lucide-react'
+import { Footprints, Activity as JoggingIcon, Bike, Zap, Mountain, Clock } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 import { useSupabaseQuery } from '../lib/useSupabaseQuery'
 import { formatDuration, formatKm, formatSteps } from '../lib/units'
@@ -76,6 +76,9 @@ export function HomePage() {
             <span className="text-xs font-medium text-[var(--color-walking)]">
               <AnimatedKm meters={t?.walking_distance_meters} fractionDigits={1} /> walked
             </span>
+            <span className="text-xs font-medium text-[var(--color-jogging)]">
+              <AnimatedKm meters={t?.jogging_distance_meters} fractionDigits={1} /> jogged
+            </span>
             <span className="text-xs font-medium text-[var(--color-cycling)]">
               <AnimatedKm meters={t?.cycling_distance_meters} fractionDigits={1} /> cycled
             </span>
@@ -86,6 +89,7 @@ export function HomePage() {
         </div>
         <MovementRing
           walkingSeconds={t?.walking_seconds ?? 0}
+          joggingSeconds={t?.jogging_seconds ?? 0}
           cyclingSeconds={t?.cycling_seconds ?? 0}
           motorcyclingSeconds={t?.motorcycling_seconds ?? 0}
           steps={t?.steps ?? 0}
@@ -94,13 +98,14 @@ export function HomePage() {
 
       <section>
         <h2 className="mb-3 text-sm font-semibold tracking-tight text-[var(--color-muted)]">This week</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           <StatTile label="Steps" value={w ? formatSteps(w.steps) : '—'} icon={Footprints} accent="walking" />
           <StatTile
             label="Active time"
-            value={w ? formatDuration(w.walking_seconds + w.cycling_seconds + w.motorcycling_seconds) : '—'}
+            value={w ? formatDuration(w.walking_seconds + w.jogging_seconds + w.cycling_seconds + w.motorcycling_seconds) : '—'}
             icon={Clock}
           />
+          <StatTile label="Jogging" value={w ? formatKm(w.jogging_distance_meters) : '—'} icon={JoggingIcon} accent="jogging" />
           <StatTile label="Cycling" value={w ? formatKm(w.cycling_distance_meters) : '—'} icon={Bike} accent="cycling" />
           <StatTile label="Motorcycling" value={w ? formatKm(w.motorcycling_distance_meters) : '—'} icon={Zap} accent="motorcycling" />
         </div>
@@ -108,13 +113,14 @@ export function HomePage() {
 
       <section>
         <h2 className="mb-3 text-sm font-semibold tracking-tight text-[var(--color-muted)]">This month</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           <StatTile label="Steps" value={m ? formatSteps(m.steps) : '—'} icon={Footprints} accent="walking" />
           <StatTile
             label="Active time"
-            value={m ? formatDuration(m.walking_seconds + m.cycling_seconds + m.motorcycling_seconds) : '—'}
+            value={m ? formatDuration(m.walking_seconds + m.jogging_seconds + m.cycling_seconds + m.motorcycling_seconds) : '—'}
             icon={Clock}
           />
+          <StatTile label="Jogging" value={m ? formatKm(m.jogging_distance_meters) : '—'} icon={JoggingIcon} accent="jogging" />
           <StatTile label="Cycling" value={m ? formatKm(m.cycling_distance_meters) : '—'} icon={Bike} accent="cycling" />
           <StatTile label="Motorcycling" value={m ? formatKm(m.motorcycling_distance_meters) : '—'} icon={Zap} accent="motorcycling" />
         </div>
@@ -122,8 +128,9 @@ export function HomePage() {
 
       <section>
         <h2 className="mb-3 text-sm font-semibold tracking-tight text-[var(--color-muted)]">Lifetime</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           <StatTile label="Walking" value={l ? formatKm(l.walking_distance_meters, 0) : '—'} icon={Footprints} accent="walking" />
+          <StatTile label="Jogging" value={l ? formatKm(l.jogging_distance_meters, 0) : '—'} icon={JoggingIcon} accent="jogging" />
           <StatTile label="Cycling" value={l ? formatKm(l.cycling_distance_meters, 0) : '—'} icon={Bike} accent="cycling" />
           <StatTile label="Motorcycling" value={l ? formatKm(l.motorcycling_distance_meters, 0) : '—'} icon={Zap} accent="motorcycling" />
           <StatTile label="Total distance" value={l ? formatKm(l.total_distance_meters, 0) : '—'} icon={Mountain} />

@@ -13,6 +13,7 @@ interface RouteRow {
 
 const ACTIVITY_COLORS: Record<ActivityType, string> = {
   walking: '#2f9e6f',
+  jogging: '#f2b134',
   cycling: '#ff6a3d',
   motorcycling: '#3d6bff',
 }
@@ -97,7 +98,7 @@ export function MapPage() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex gap-1">
-        {(['all', 'walking', 'cycling', 'motorcycling'] as const).map((f) => (
+        {(['all', 'walking', 'jogging', 'cycling', 'motorcycling'] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}

@@ -73,5 +73,20 @@
             android:exported="false"
             tools:node="merge" />
 
+        <!-- Shareable end-of-ride card (ShareCardRenderer) is written to
+             cache and handed to the system share sheet via a content:// URI
+             through this provider — a plain file:// URI would be rejected
+             by most share targets (Play/Android disallow file:// Intent
+             extras crossing the app boundary since API 24). -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
     </application>
 </manifest>

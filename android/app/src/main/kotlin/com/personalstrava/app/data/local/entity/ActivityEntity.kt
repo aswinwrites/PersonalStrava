@@ -13,7 +13,7 @@ import androidx.room.PrimaryKey
  */
 @Entity(
     tableName = "activities",
-    indices = [Index("activity_type"), Index("start_time"), Index("sync_status")],
+    indices = [Index("activityType"), Index("startTime"), Index("syncStatus")],
 )
 data class ActivityEntity(
     @PrimaryKey val id: String,

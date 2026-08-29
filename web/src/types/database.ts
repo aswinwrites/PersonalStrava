@@ -3,7 +3,7 @@
 //   supabase gen types typescript --project-id <ref> > src/types/database.ts
 // and this file becomes generated rather than hand-maintained.
 
-export type ActivityType = 'walking' | 'cycling' | 'motorcycling'
+export type ActivityType = 'walking' | 'jogging' | 'cycling' | 'motorcycling'
 export type SyncStatus = 'local' | 'pending_sync' | 'syncing' | 'synced' | 'sync_failed' | 'archived'
 export type ExportStatus = 'generated' | 'verified' | 'detail_deleted'
 
@@ -39,9 +39,11 @@ export interface DailyStatsRow {
   date: string
   steps: number
   walking_distance_meters: number
+  jogging_distance_meters: number
   cycling_distance_meters: number
   motorcycling_distance_meters: number
   walking_seconds: number
+  jogging_seconds: number
   cycling_seconds: number
   motorcycling_seconds: number
   elevation_gain_meters: number
@@ -56,9 +58,11 @@ export interface MonthlyStatsRow {
   month: string
   steps: number
   walking_distance_meters: number
+  jogging_distance_meters: number
   cycling_distance_meters: number
   motorcycling_distance_meters: number
   walking_seconds: number
+  jogging_seconds: number
   cycling_seconds: number
   motorcycling_seconds: number
   elevation_gain_meters: number
@@ -87,6 +91,17 @@ export interface ProfileRow {
   weekly_report_enabled: boolean
   monthly_report_enabled: boolean
   report_email: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ActivityPhotoRow {
+  id: string
+  user_id: string
+  activity_id: string
+  storage_path: string
+  caption: string | null
+  position: number
   created_at: string
   updated_at: string
 }
@@ -122,6 +137,7 @@ export interface Database {
       personal_records: { Row: PersonalRecordRow; Insert: Partial<PersonalRecordRow>; Update: Partial<PersonalRecordRow> }
       profiles: { Row: ProfileRow; Insert: Partial<ProfileRow>; Update: Partial<ProfileRow> }
       export_metadata: { Row: ExportMetadataRow; Insert: Partial<ExportMetadataRow>; Update: Partial<ExportMetadataRow> }
+      activity_photos: { Row: ActivityPhotoRow; Insert: Partial<ActivityPhotoRow> & { id: string; user_id: string; activity_id: string; storage_path: string }; Update: Partial<ActivityPhotoRow> }
     }
     Functions: {
       get_period_totals: {
@@ -139,9 +155,11 @@ export interface Database {
 export interface PeriodTotals {
   steps: number
   walking_distance_meters: number
+  jogging_distance_meters: number
   cycling_distance_meters: number
   motorcycling_distance_meters: number
   walking_seconds: number
+  jogging_seconds: number
   cycling_seconds: number
   motorcycling_seconds: number
   elevation_gain_meters: number
@@ -150,6 +168,7 @@ export interface PeriodTotals {
 
 export interface LifetimeTotals {
   walking_distance_meters: number
+  jogging_distance_meters: number
   cycling_distance_meters: number
   motorcycling_distance_meters: number
   total_distance_meters: number

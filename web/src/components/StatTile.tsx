@@ -1,9 +1,10 @@
 import type { LucideIcon } from 'lucide-react'
 
-type Accent = 'walking' | 'cycling' | 'motorcycling'
+type Accent = 'walking' | 'jogging' | 'cycling' | 'motorcycling'
 
 const ACCENT_GRADIENT: Record<Accent, string> = {
   walking: 'from-[var(--color-walking)]/12',
+  jogging: 'from-[var(--color-jogging)]/12',
   cycling: 'from-[var(--color-cycling)]/12',
   motorcycling: 'from-[var(--color-motorcycling)]/12',
 }

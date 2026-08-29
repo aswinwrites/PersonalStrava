@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Redesigned launcher mark (replaces the earlier placeholder violet-dot
+     "T"). Reads as a single route trace running through the app's four
+     per-activity accent colors (walking green, cycling orange,
+     motorcycling blue; same hexes as the web app's activity accent colors),
+     ending in a location pin. The idea:
+     one continuous line, whatever you're tracking — rather than a mark
+     tied to any single activity type, which stops making sense the moment
+     a second/third/fourth activity type gets added (as jogging just did). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <path
+        android:fillColor="#00000000"
+        android:strokeWidth="9"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M30,78 C36,68 42,60 48,60 C54,60 52,46 58,42 C64,38 68,48 78,30">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:type="linear"
+                android:startX="24"
+                android:startY="84"
+                android:endX="84"
+                android:endY="24"
+                android:startColor="#2F9E6F"
+                android:centerColor="#FF6A3D"
+                android:endColor="#3D6BFF" />
+        </aapt:attr>
+    </path>
+
+    <!-- Destination pin: white halo + solid center, marking the end of the route. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M78,30m-6.5,0a6.5,6.5 0,1 1,13 0a6.5,6.5 0,1 1,-13 0" />
+    <path
+        android:fillColor="#3D6BFF"
+        android:pathData="M78,30m-3.5,0a3.5,3.5 0,1 1,7 0a3.5,3.5 0,1 1,-7 0" />
+</vector>

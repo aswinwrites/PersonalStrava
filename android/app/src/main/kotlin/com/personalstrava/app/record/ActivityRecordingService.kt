@@ -38,9 +38,10 @@ class ActivityRecordingService : Service() {
         override fun onLocationResult(result: LocationResult) {
             val activityId = activityId ?: return
             result.locations.forEach { location ->
-                // Persisted via GpsPointDao on a background dispatcher — see
-                // RecordingRepository (Phase 2: wires this callback to Room
-                // writes + the live-metrics StateFlow the recording UI reads).
+                // RecordingRepository (owned by PersonalStravaApp, subscribed
+                // for the duration of the recording) is the listener that
+                // persists this via GpsPointDao and derives live distance/
+                // speed for the recording UI — see its own doc comment.
                 LocationSampleBus.emit(activityId, location)
             }
         }
@@ -107,8 +108,8 @@ class ActivityRecordingService : Service() {
 /**
  * Minimal in-process pub/sub so the foreground service (which cannot hold a
  * ViewModel reference) can hand raw locations to whichever component is
- * currently persisting + displaying them. Replace with a proper
- * repository-owned SharedFlow once RecordingViewModel lands in Phase 2.
+ * currently persisting + displaying them — RecordingRepository, for the
+ * lifetime of one recording.
  */
 object LocationSampleBus {
     private val listeners = mutableListOf<(String, android.location.Location) -> Unit>()
