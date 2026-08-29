@@ -1,5 +1,6 @@
 package com.personalstrava.app.sync
 
+import android.util.Log
 import com.personalstrava.app.data.local.dao.ActivityDao
 import com.personalstrava.app.data.local.dao.SyncQueueDao
 import com.personalstrava.app.data.local.entity.ActivityEntity
@@ -28,9 +29,13 @@ class SyncManager(
 
     suspend fun syncPending(): SyncResult {
         val userId = supabase.auth.currentSessionOrNull()?.user?.id
-            ?: return SyncResult(succeeded = 0, failed = 0) // not signed in — nothing to do yet
+        if (userId == null) {
+            Log.d(TAG, "syncPending: no session, skipping")
+            return SyncResult(succeeded = 0, failed = 0) // not signed in — nothing to do yet
+        }
 
         val pending = activityDao.getPendingSync()
+        Log.d(TAG, "syncPending: userId=$userId pendingCount=${pending.size}")
         var succeeded = 0
         var failed = 0
 
@@ -45,8 +50,10 @@ class SyncManager(
                 activityDao.updateSyncStatus(activity.id, "synced", System.currentTimeMillis())
                 syncQueueDao.remove(activity.id)
                 succeeded++
+                Log.d(TAG, "syncPending: synced activity ${activity.id}")
             } catch (e: Exception) {
                 failed++
+                Log.e(TAG, "syncPending: FAILED activity ${activity.id}: ${e.javaClass.simpleName}: ${e.message}", e)
                 syncQueueDao.recordAttempt(activity.id, System.currentTimeMillis(), e.message)
                 val queueEntry = syncQueueDao.getAll().firstOrNull { it.activityId == activity.id }
                 val shouldGiveUp = (queueEntry?.attemptCount ?: 0) >= maxAttempts
@@ -61,10 +68,15 @@ class SyncManager(
             }
         }
 
+        Log.d(TAG, "syncPending: done succeeded=$succeeded failed=$failed")
         return SyncResult(succeeded, failed)
     }
 
     data class SyncResult(val succeeded: Int, val failed: Int)
+
+    companion object {
+        private const val TAG = "SyncManager"
+    }
 }
 
 @Serializable

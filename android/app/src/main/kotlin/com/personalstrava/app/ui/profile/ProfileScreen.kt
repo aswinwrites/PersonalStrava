@@ -35,6 +35,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,6 +49,10 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.personalstrava.app.sync.SyncWorker
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 
 /**
  * The "proper profile" screen — display name + avatar, both backed by the
@@ -194,6 +201,47 @@ fun ProfileScreen(
                         }
                     },
                 )
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        var syncStatusText by remember { mutableStateOf<String?>(null) }
+        val syncScope = rememberCoroutineScope()
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+                .background(Color(0x14000000))
+                .padding(16.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = "Sync now", fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                    Text(
+                        text = syncStatusText
+                            ?: "Recorded activities sync automatically, but you can force it right now.",
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                }
+                Button(onClick = {
+                    // enqueueUniqueWork(REPLACE) — same job SyncWorker already uses after
+                    // every "Stop recording", just triggered manually here instead.
+                    SyncWorker.enqueueOneTime(context)
+                    syncStatusText = "Sync started…"
+                    syncScope.launch {
+                        delay(4000)
+                        syncStatusText = "Requested — check the web dashboard in a few seconds."
+                    }
+                }) {
+                    Text("Sync now")
+                }
             }
         }
 
