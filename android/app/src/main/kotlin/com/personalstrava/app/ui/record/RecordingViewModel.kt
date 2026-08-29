@@ -23,6 +23,7 @@ data class RecordingUiState(
     val elapsedSeconds: Long = 0,
     val distanceMeters: Double = 0.0,
     val currentSpeedMps: Double = 0.0,
+    val isPaused: Boolean = false,
     /** Set for one emission right after stop() finalizes — RecordingScreen
      *  consumes it (navigates back) then clears it via consumedFinished(). */
     val justFinished: ActivityEntity? = null,
@@ -50,17 +51,24 @@ class RecordingViewModel(application: Application) : AndroidViewModel(applicatio
                     isRecording = live.isRecording,
                     distanceMeters = live.distanceMeters,
                     currentSpeedMps = live.currentSpeedMps,
+                    isPaused = live.isPaused,
                 )
             }
         }
         // Elapsed time is wall-clock, not GPS-point-derived, so it keeps
-        // ticking even while stopped at a light with no new fixes coming in.
+        // ticking even while stopped at a light with no new fixes coming in —
+        // but excludes any time spent explicitly paused (both time already
+        // accumulated across past pause/resume cycles, and time in the
+        // *current* pause if one is in progress right now).
         viewModelScope.launch {
             while (isActive) {
                 delay(1000)
-                val start = repository.liveStats.value.startTimeMs
+                val live = repository.liveStats.value
+                val start = live.startTimeMs
                 if (start != null) {
-                    _uiState.value = _uiState.value.copy(elapsedSeconds = (System.currentTimeMillis() - start) / 1000)
+                    val pausedSoFar = live.pausedMs + (live.pauseStartedAtMs?.let { System.currentTimeMillis() - it } ?: 0L)
+                    val elapsedMs = (System.currentTimeMillis() - start - pausedSoFar).coerceAtLeast(0)
+                    _uiState.value = _uiState.value.copy(elapsedSeconds = elapsedMs / 1000, isPaused = live.isPaused)
                 }
             }
         }
@@ -73,6 +81,19 @@ class RecordingViewModel(application: Application) : AndroidViewModel(applicatio
         val intent = Intent(context, ActivityRecordingService::class.java)
             .putExtra(ActivityRecordingService.EXTRA_ACTIVITY_ID, activityId)
         context.startForegroundService(intent)
+    }
+
+    /** Pauses GPS sampling (service is told via ACTION_PAUSE) and the repository's own accounting together, so the two never drift. */
+    fun pause() {
+        val context = getApplication<Application>()
+        context.startService(Intent(context, ActivityRecordingService::class.java).setAction(ActivityRecordingService.ACTION_PAUSE))
+        repository.pause()
+    }
+
+    fun resume() {
+        val context = getApplication<Application>()
+        context.startService(Intent(context, ActivityRecordingService::class.java).setAction(ActivityRecordingService.ACTION_RESUME))
+        repository.resume()
     }
 
     fun stop() {

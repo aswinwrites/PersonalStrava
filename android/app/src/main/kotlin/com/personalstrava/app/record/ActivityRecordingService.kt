@@ -51,9 +51,24 @@ class ActivityRecordingService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        activityId = intent?.getStringExtra(EXTRA_ACTIVITY_ID)
-        startForeground(NOTIFICATION_ID, buildNotification())
-        startLocationUpdates()
+        when (intent?.action) {
+            ACTION_PAUSE -> {
+                // Actually tear down GPS updates rather than just ignoring incoming fixes — no
+                // point burning battery sampling location the app is about to discard anyway
+                // (RecordingRepository stops listening on the bus the moment pause() is called).
+                if (::fusedLocationClient.isInitialized) fusedLocationClient.removeLocationUpdates(locationCallback)
+                updateNotification(paused = true)
+            }
+            ACTION_RESUME -> {
+                startLocationUpdates()
+                updateNotification(paused = false)
+            }
+            else -> {
+                activityId = intent?.getStringExtra(EXTRA_ACTIVITY_ID)
+                startForeground(NOTIFICATION_ID, buildNotification(paused = false))
+                startLocationUpdates()
+            }
+        }
         return START_STICKY
     }
 
@@ -78,7 +93,12 @@ class ActivityRecordingService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun buildNotification(): Notification {
+    private fun updateNotification(paused: Boolean) {
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.notify(NOTIFICATION_ID, buildNotification(paused))
+    }
+
+    private fun buildNotification(paused: Boolean): Notification {
         val manager = getSystemService(NotificationManager::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             manager.createNotificationChannel(
@@ -92,8 +112,10 @@ class ActivityRecordingService : Service() {
             PendingIntent.FLAG_IMMUTABLE,
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Recording activity")
-            .setContentText("Distance and speed update live — tap to open PersonalStrava")
+            .setContentTitle(if (paused) "Recording paused" else "Recording activity")
+            .setContentText(
+                if (paused) "Tap Resume in the app to keep going" else "Distance and speed update live — tap to open Telemetry",
+            )
             .setSmallIcon(R.drawable.ic_recording) // placeholder vector asset — see res/drawable
             .setContentIntent(openAppIntent)
             .setOngoing(true)
@@ -102,6 +124,8 @@ class ActivityRecordingService : Service() {
 
     companion object {
         const val EXTRA_ACTIVITY_ID = "activity_id"
+        const val ACTION_PAUSE = "com.personalstrava.app.action.PAUSE"
+        const val ACTION_RESUME = "com.personalstrava.app.action.RESUME"
         private const val CHANNEL_ID = "recording"
         private const val NOTIFICATION_ID = 1001
         private const val LOCATION_INTERVAL_MS = 3_000L

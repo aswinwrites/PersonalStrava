@@ -31,6 +31,11 @@ data class RecordingLiveStats(
     val distanceMeters: Double = 0.0,
     val currentSpeedMps: Double = 0.0,
     val pointCount: Int = 0,
+    val isPaused: Boolean = false,
+    /** Total paused duration accumulated across all pause/resume cycles so far, finalized on each resume(). */
+    val pausedMs: Long = 0,
+    /** Wall-clock timestamp the *current* pause began, or null when not paused. */
+    val pauseStartedAtMs: Long? = null,
 )
 
 /**
@@ -68,6 +73,10 @@ class RecordingRepository(private val database: AppDatabase) {
         onLocation(activityId, location)
     }
 
+    /** Total paused ms already finalized by resume() calls this session — mirrors liveStats.pausedMs but kept here so pause()/resume() don't need to read-then-write the StateFlow to stay consistent. */
+    private var accumulatedPausedMs: Long = 0
+    private var pauseStartedAtMs: Long? = null
+
     /**
      * Creates the draft activity row and starts listening for GPS samples.
      * Does NOT start [ActivityRecordingService] itself — the caller
@@ -80,6 +89,8 @@ class RecordingRepository(private val database: AppDatabase) {
         val activityId = IdGenerator.newActivityId()
         val now = System.currentTimeMillis()
         currentPoints.clear()
+        accumulatedPausedMs = 0
+        pauseStartedAtMs = null
 
         _liveStats.value = RecordingLiveStats(
             activityId = activityId,
@@ -119,6 +130,32 @@ class RecordingRepository(private val database: AppDatabase) {
 
         LocationSampleBus.subscribe(locationListener)
         return activityId
+    }
+
+    /**
+     * Explicit pause: tears down GPS sampling (the service, told via
+     * ACTION_PAUSE, actually stops requesting location updates — this just
+     * stops listening on the bus and marks the pause start) so elapsed time
+     * and the moving/stopped split both exclude it, unlike an implicit stop
+     * while still recording (spec: pause is a deliberate "I'm done for now,
+     * for a bit" signal, not the same thing as coasting to a stoplight).
+     */
+    fun pause() {
+        val stats = _liveStats.value
+        if (!stats.isRecording || stats.isPaused) return
+        pauseStartedAtMs = System.currentTimeMillis()
+        LocationSampleBus.unsubscribe(locationListener)
+        _liveStats.value = stats.copy(isPaused = true, pauseStartedAtMs = pauseStartedAtMs)
+    }
+
+    fun resume() {
+        val stats = _liveStats.value
+        if (!stats.isRecording || !stats.isPaused) return
+        val startedAt = pauseStartedAtMs ?: return
+        accumulatedPausedMs += System.currentTimeMillis() - startedAt
+        pauseStartedAtMs = null
+        LocationSampleBus.subscribe(locationListener)
+        _liveStats.value = stats.copy(isPaused = false, pausedMs = accumulatedPausedMs, pauseStartedAtMs = null)
     }
 
     private fun onLocation(activityId: String, location: Location) {
@@ -165,12 +202,17 @@ class RecordingRepository(private val database: AppDatabase) {
         val startTime = stats.startTimeMs ?: return null
 
         LocationSampleBus.unsubscribe(locationListener)
+        // Total paused duration includes any pause still in progress at stop time (e.g. user hit
+        // Stop while paused rather than Resume first) — finalize it here rather than requiring resume().
+        val totalPausedMs = stats.pausedMs + (stats.pauseStartedAtMs?.let { System.currentTimeMillis() - it } ?: 0L)
         _liveStats.value = RecordingLiveStats() // reset immediately so late/stale callbacks are ignored
+        accumulatedPausedMs = 0
+        pauseStartedAtMs = null
 
         val persistedPoints = gpsPointDao.getForActivity(activityId).map { it.toGpsPoint() }
         val cleaned = GpsProcessor.cleanPoints(persistedPoints)
         val endTime = System.currentTimeMillis()
-        val elapsedSeconds = (endTime - startTime) / 1000
+        val elapsedSeconds = ((endTime - startTime - totalPausedMs) / 1000).coerceAtLeast(0)
         val movingSeconds = GpsProcessor.movingSeconds(cleaned)
         val distance = GpsProcessor.totalDistanceMeters(cleaned)
         val speed = GpsProcessor.speedStats(cleaned, distance, elapsedSeconds, movingSeconds)
@@ -207,6 +249,8 @@ class RecordingRepository(private val database: AppDatabase) {
         val activityId = _liveStats.value.activityId ?: return
         LocationSampleBus.unsubscribe(locationListener)
         _liveStats.value = RecordingLiveStats()
+        accumulatedPausedMs = 0
+        pauseStartedAtMs = null
         gpsPointDao.deleteForActivity(activityId)
         activityDao.delete(activityId)
         currentPoints.clear()

@@ -124,7 +124,7 @@ fun RecordingScreen(
             TextButton(onClick = { onFinished(null) }) { Text("Cancel") }
         } else {
             Text(text = formatElapsed(state.elapsedSeconds), fontSize = 40.sp, fontWeight = FontWeight.Bold)
-            Text(text = "ELAPSED", fontSize = 12.sp)
+            Text(text = if (state.isPaused) "PAUSED" else "ELAPSED", fontSize = 12.sp)
             Spacer(Modifier.height(24.dp))
             Text(text = "%.2f km".format(state.distanceMeters / 1000), fontSize = 28.sp, fontWeight = FontWeight.Bold)
             Text(text = "DISTANCE", fontSize = 12.sp)
@@ -132,6 +132,12 @@ fun RecordingScreen(
             Text(text = "%.1f km/h".format(state.currentSpeedMps * 3.6), fontSize = 20.sp)
             Text(text = "CURRENT SPEED", fontSize = 12.sp)
             Spacer(Modifier.height(32.dp))
+            if (state.isPaused) {
+                Button(onClick = { viewModel.resume() }) { Text("RESUME") }
+            } else {
+                Button(onClick = { viewModel.pause() }) { Text("PAUSE") }
+            }
+            Spacer(Modifier.height(8.dp))
             Button(onClick = { viewModel.stop() }) { Text("STOP") }
             Spacer(Modifier.height(8.dp))
             TextButton(onClick = { viewModel.discard(); onFinished(null) }) { Text("Discard") }
